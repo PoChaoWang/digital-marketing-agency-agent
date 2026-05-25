@@ -1,0 +1,515 @@
+# Marketing Data Quality Agent Demo
+
+這個專案是用模擬行銷資料展示：行銷人員如何透過維護文字規則，請 AI agent 協助檢查資料品質、偵測異常、檢查命名規則，並輸出可閱讀的報告。
+
+目前資料是 lululemon Japan 的模擬資料，包含 Google Ads、Meta Ads、GA4，以及合併後的 360 行銷資料表。
+
+## AI Agent 可以做什麼
+
+這個 agent 的工作不是取代行銷判斷，而是把行銷人員的經驗規則變成可重複執行的檢查流程。
+
+你可以請它做：
+
+- 檢查資料品質：必要欄位是否缺失、數值是否合理、clicks 是否超過 impressions、GA4 是否有對應到廣告資料。
+- 偵測異常：檢查 `data/360.csv` 中 spend、ROAS、CTR、users、revenue 是否出現不合理波動。
+- 檢查命名規則：檢查 campaign、ad group、ad set、ad name 是否符合命名格式。
+- 產出報告：把檢查結果寫成 markdown 報告，放在 `reports/`。
+- 轉成更好讀的格式：例如把 markdown 報告整理成 HTML，方便給團隊閱讀。
+
+Agent 預設不會修改原始資料，也不會修改 fake data 產生腳本。它的角色是「讀資料、讀規則、產出檢查報告與建議」。
+
+## 可用指令
+
+在 Claude Code / Codex / Gemini CLI 中，可以直接輸入以下短指令。
+
+```text
+mq
+```
+
+執行資料品質檢查，使用 `data-quality` skill。
+
+```text
+ma
+```
+
+執行異常偵測，使用 `anomaly-detection` skill。
+
+```text
+mn
+```
+
+執行命名規則檢查，使用 `naming-convention` skill。
+
+也可以用自然語言說明，例如：
+
+```text
+請檢查這批行銷資料有沒有品質問題，並輸出報告。
+```
+
+```text
+請找出 360.csv 裡 ROAS 或 spend 異常的 campaign。
+```
+
+```text
+請檢查 campaign 和 ad group 命名是否符合規則。
+```
+
+注意：某些 CLI 不支援自訂 slash command，所以請輸入 `mq`，不要輸入 `/mq`。
+
+## 報告會輸出到哪裡
+
+Agent 產出的報告會放在：
+
+```text
+reports/
+```
+
+例如：
+
+```text
+reports/data-quality-2026-05-25.md
+reports/anomaly-detection-2026-05-25.md
+reports/naming-convention-2026-05-25.md
+```
+
+報告通常會包含：
+
+- 檢查日期
+- 使用的 skill
+- 使用的規則檔案
+- 檢查資料來源
+- 摘要
+- 發現問題清單
+- 嚴重程度
+- 可能原因
+- 建議對策
+- 需要人工確認的事項
+
+## 三個 Skill 的功用
+
+### data-quality
+
+位置：
+
+```text
+.claude/skills/data-quality/
+```
+
+用途：
+
+- 檢查 `data/` 下的 CSV 是否符合基本資料品質標準。
+- 適合用來回答「這批資料能不能用」、「有沒有缺欄位」、「數字有沒有明顯錯誤」。
+
+會讀取的規則：
+
+```text
+.claude/skills/data-quality/references/rules.md
+```
+
+會檢查的資料：
+
+```text
+data/google_ads_raw.csv
+data/meta_ads_raw.csv
+data/ga4_raw.csv
+data/360.csv
+```
+
+範例檢查項目：
+
+- 必要欄位不應為空
+- clicks 不應超過 impressions
+- spend、revenue、conversions 不應為負數
+- spend > 0 時 GA4 users 不應為 0
+- ROAS 是否落在合理範圍
+- CTR 是否落在合理範圍
+
+### anomaly-detection
+
+位置：
+
+```text
+.claude/skills/anomaly-detection/
+```
+
+用途：
+
+- 針對 `data/360.csv` 做跨日期、campaign、source、ad type 等維度比較。
+- 適合用來回答「哪個 campaign 表現怪怪的」、「今天 spend 是否暴增」、「ROAS 是否連續下滑」。
+
+會讀取的規則：
+
+```text
+.claude/skills/anomaly-detection/references/rules.md
+```
+
+會檢查的資料：
+
+```text
+data/360.csv
+```
+
+範例檢查項目：
+
+- spend 單日暴增
+- campaign 突然 0 impression
+- ROAS 連續下滑
+- CTR 突然升高或降低
+- clicks 有量但 users 為 0
+
+### naming-convention
+
+位置：
+
+```text
+.claude/skills/naming-convention/
+```
+
+用途：
+
+- 檢查 campaign、ad group、ad set、ad name 是否符合命名規則。
+- 適合用來回答「命名有沒有亂掉」、「新 campaign 是否符合規範」。
+
+會讀取的規則：
+
+```text
+.claude/skills/naming-convention/references/rules.md
+```
+
+會檢查的資料：
+
+```text
+data/google_ads_raw.csv
+data/meta_ads_raw.csv
+data/360.csv
+```
+
+範例命名格式：
+
+```text
+[市場]_[平台]_[類型]_[漏斗階段]_[產品線]
+```
+
+例如：
+
+```text
+jp_google_pmax_prospecting_women_yoga
+jp_meta_img_retargeting_bags
+```
+
+## 行銷人員該怎麼維護規則
+
+行銷人員主要維護的是各 skill 底下的 `references/rules.md`。
+
+```text
+.claude/skills/data-quality/references/rules.md
+.claude/skills/anomaly-detection/references/rules.md
+.claude/skills/naming-convention/references/rules.md
+```
+
+這些檔案可以用純文字描述業務規則，不需要寫程式。
+
+例如你可以寫：
+
+```text
+Meta prospecting CTR 低於 0.3% 時，需要人工確認。
+```
+
+```text
+ROAS 連續 3 天下滑，標記為 High。
+```
+
+```text
+campaign name 必須使用小寫英文和底線，不可以有空白。
+```
+
+建議維護方式：
+
+- 一次只修改一個規則主題。
+- 寫清楚適用對象，例如 Google、Meta、prospecting、retargeting。
+- 寫清楚嚴重程度，例如 High、Medium、Low。
+- 寫清楚 agent 應該怎麼回報，例如列出 campaign、日期、影響筆數。
+- 如果不確定閾值，先寫「需要人工確認」，不要直接寫成阻擋條件。
+
+## 如何擴展 Agent
+
+如果你想新增一種檢查，例如「預算 pacing 檢查」，可以新增一個 skill：
+
+```text
+.claude/skills/budget-pacing/
+├── SKILL.md
+└── references/
+    └── rules.md
+```
+
+再新增一個短指令：
+
+```text
+.claude/commands/mp.md
+```
+
+建議每個 skill 只負責一種明確任務，避免一個規則檔混在一起變得難維護。
+
+## 專案結構
+
+```text
+digital-marketing-agent/
+├── AGENT.md
+├── README.md
+├── requirements.txt
+├── .claude/
+│   ├── commands/
+│   │   ├── mq.md
+│   │   ├── ma.md
+│   │   └── mn.md
+│   └── skills/
+│       ├── data-quality/
+│       │   ├── SKILL.md
+│       │   └── references/
+│       │       └── rules.md
+│       ├── anomaly-detection/
+│       │   ├── SKILL.md
+│       │   └── references/
+│       │       └── rules.md
+│       └── naming-convention/
+│           ├── SKILL.md
+│           └── references/
+│               └── rules.md
+├── data/
+│   ├── google_ads_raw.csv
+│   ├── meta_ads_raw.csv
+│   ├── ga4_raw.csv
+│   └── 360.csv
+├── fake-data-script/
+│   ├── README.md
+│   ├── generate_lululemon_fake_data.py
+│   ├── build_360_csv.py
+│   └── sql/
+│       └── ads_unified.sql
+└── reports/
+    └── .gitkeep
+```
+
+## 假資料內容
+
+這個專案使用 lululemon Japan 的模擬行銷資料。
+
+### Google Ads raw data
+
+檔案：
+
+```text
+data/google_ads_raw.csv
+```
+
+內容包含：
+
+- campaign
+- ad group
+- ad
+- impressions
+- clicks
+- spend
+- conversions
+- conversion value
+
+模擬的 campaign type：
+
+- PMax
+- Shopping
+- Display
+
+### Meta Ads raw data
+
+檔案：
+
+```text
+data/meta_ads_raw.csv
+```
+
+內容包含：
+
+- campaign
+- ad set
+- ad
+- impressions
+- clicks
+- spend
+- conversions
+- conversion value
+
+模擬的 ad format：
+
+- Image
+- Video
+- Collection
+- Carousel
+- Dynamic retargeting
+
+### GA4 raw data
+
+檔案：
+
+```text
+data/ga4_raw.csv
+```
+
+內容包含：
+
+- source
+- medium
+- UTM campaign
+- UTM id
+- UTM content
+- sessions
+- users
+- new users
+- conversions
+- revenue
+
+Paid GA4 rows 會對應回 Google Ads 與 Meta Ads：
+
+```text
+utm_campaign -> campaign_name
+utm_id       -> ad_group 或 ad_set
+utm_content  -> ad_name
+```
+
+### 360.csv
+
+檔案：
+
+```text
+data/360.csv
+```
+
+這是合併後的行銷分析資料表，整合：
+
+- Google Ads
+- Meta Ads
+- GA4
+
+合併邏輯在：
+
+```text
+fake-data-script/sql/ads_unified.sql
+```
+
+## 假資料如何產生
+
+產生三份 raw data：
+
+```bash
+.venv/bin/python fake-data-script/generate_lululemon_fake_data.py --end-date 2026-05-25
+```
+
+輸出：
+
+```text
+data/google_ads_raw.csv
+data/meta_ads_raw.csv
+data/ga4_raw.csv
+```
+
+合併成 360.csv：
+
+```bash
+.venv/bin/python fake-data-script/build_360_csv.py
+```
+
+輸出：
+
+```text
+data/360.csv
+```
+
+## 各腳本的功用
+
+### generate_lululemon_fake_data.py
+
+位置：
+
+```text
+fake-data-script/generate_lululemon_fake_data.py
+```
+
+用途：
+
+- 產生 Google Ads raw data
+- 產生 Meta Ads raw data
+- 產生 GA4 raw data
+
+這支腳本模擬的是 API 回傳的乾淨資料，不刻意製造缺失值、格式錯誤或重複列。
+
+### build_360_csv.py
+
+位置：
+
+```text
+fake-data-script/build_360_csv.py
+```
+
+用途：
+
+- 讀取 `fake-data-script/sql/ads_unified.sql`
+- 使用 DuckDB 合併三份 raw CSV
+- 輸出 `data/360.csv`
+
+### ads_unified.sql
+
+位置：
+
+```text
+fake-data-script/sql/ads_unified.sql
+```
+
+用途：
+
+- 統一 Google Ads 與 Meta Ads 欄位
+- 用 `UNION ALL` 合併廣告資料
+- 聚合 GA4 UTM 資料
+- 將 GA4 指標接到廣告資料上
+
+## 安裝方式
+
+第一次使用時，請在專案根目錄執行：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+目前唯一需要的 Python 套件是：
+
+```text
+duckdb
+```
+
+如果只是閱讀規則、修改 `rules.md` 或查看報告，不需要安裝 Python。
+
+## 常見使用流程
+
+1. 產生或更新假資料。
+
+```bash
+.venv/bin/python fake-data-script/generate_lululemon_fake_data.py --end-date 2026-05-25
+```
+
+2. 合併成 360.csv。
+
+```bash
+.venv/bin/python fake-data-script/build_360_csv.py
+```
+
+3. 請 AI agent 檢查資料品質。
+
+```text
+mq
+```
+
+4. 查看 `reports/` 裡的報告。
+
+5. 如果報告中的判斷不符合行銷經驗，調整對應的 `references/rules.md`。
+
+6. 再次請 agent 執行檢查。
