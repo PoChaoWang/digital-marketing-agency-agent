@@ -1,4 +1,4 @@
-# Marketing Data Quality Agent Demo
+# Digital Marketing Agency Agent Demo
 
 這個專案是用模擬行銷資料展示：行銷人員如何透過維護文字規則，請 AI agent 協助檢查資料品質、偵測異常、檢查命名規則，並輸出可閱讀的報告。
 
