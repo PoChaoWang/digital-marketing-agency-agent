@@ -199,8 +199,17 @@ reports/naming-convention-2026-05-25.md
 - 建議對策
 - 需要人工確認的事項
 
-如果你希望可以更改報告的規格，你可以去`rules.md`的「## 報告要求」去修改
-例如`.claude/skills/data-quality/references/rules.md`
+如果你想調整報告格式或內容，可以到對應 skill 的 `rules.md`，修改裡面的「## 報告要求」。
+
+例如資料品質報告的規格在：
+
+```text
+.claude/skills/data-quality/references/rules.md
+```
+
+目前主要輸出格式是 markdown 檔案。建議在 VS Code 安裝 [Markdown Preview Enhanced](https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced)，方便直接預覽報告。
+
+`reports/` 裡可能也會看到 HTML 檔案。這是另外請 AI 生成的版本，用來測試 HTML 報告的可讀性；不過 HTML 產生時間通常比較久，所以目前仍以 markdown 報告為主。
 
 ## 三個 Skill 的功用
 
