@@ -4,6 +4,117 @@
 
 目前資料是 lululemon Japan 的模擬資料，包含 Google Ads、Meta Ads、GA4，以及合併後的 360 行銷資料表。
 
+## 目錄
+
+- [第一次使用：給非技術人員的建議流程](#第一次使用給非技術人員的建議流程)
+- [AI Agent 可以做什麼](#ai-agent-可以做什麼)
+- [可用指令](#可用指令)
+- [報告會輸出到哪裡](#報告會輸出到哪裡)
+- [三個 Skill 的功用](#三個-skill-的功用)
+- [行銷人員該怎麼維護規則](#行銷人員該怎麼維護規則)
+- [如何擴展 Agent](#如何擴展-agent)
+- [專案結構](#專案結構)
+- [假資料內容](#假資料內容)
+- [假資料如何產生](#假資料如何產生)
+- [各腳本的功用](#各腳本的功用)
+
+## 第一次使用：給非技術人員的建議流程
+
+如果你不熟悉終端機，建議先使用 VS Code 操作。
+VS Code 是工程師常用的編輯器，可以在這裡下載：[https://code.visualstudio.com/download](https://code.visualstudio.com/download)。
+它可以把專案檔案和終端機放在同一個畫面，比較不容易迷路。
+
+### 1. 安裝並打開 VS Code
+
+1. 安裝 VS Code。
+2. 打開 VS Code。
+3. 選擇你想要放專案的資料夾。例如你想把專案放在桌面，就先在 VS Code 打開桌面或桌面上的某個資料夾。
+4. 在 VS Code 上方選單打開終端機，或從畫面下方把終端機拉起來。
+5. 貼上以下指令，把這個 repo 下載到剛剛選好的資料夾裡：
+
+```bash
+gh repo clone PoChaoWang/digital-marketing-agency-agent
+```
+
+6. 下載完成後，VS Code 左側會看到一個新的資料夾：
+
+```text
+digital-marketing-agency-agent
+```
+
+7. 接著在 VS Code 打開這個新下載的專案資料夾，或在終端機輸入：
+
+```bash
+cd digital-marketing-agency-agent
+```
+
+接下來的指令都要在 `digital-marketing-agency-agent` 這個專案資料夾裡執行。
+
+### 2. 建立 Python 環境並安裝套件
+
+請確認終端機目前在專案根目錄，也就是看得到 `README.md` 和 `requirements.txt` 的位置。
+
+第一次使用時，你可以把下面三行都複製一次貼到終端機裡執行，又或者是分三行依序輸入：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+如果終端機的輸入欄位最前面出現 `(.venv)`，代表 Python 環境已經啟用。
+使用`(.venv)`的好處是當你不希望這個專案佔用你的電腦空間時，你把專案全部刪除，放在venv裡的套件也可以一次清除，避免麻煩
+
+### 3. 第一次先產生預設 180 天假資料
+
+第一次使用不建議指定日期，先用預設的 180 天資料即可，所以在終端機輸入：
+
+```bash
+python fake-data-script/generate_lululemon_fake_data.py
+```
+
+`data`資料夾裡會產生三個檔案：
+
+```text
+data/google_ads_raw.csv
+data/meta_ads_raw.csv
+data/ga4_raw.csv
+```
+這個就是平台的模擬資料
+
+### 4. 合併資料並產生 360.csv
+
+產生 raw data 後，再執行資料合併，一樣在終端機輸：
+
+```bash
+python fake-data-script/build_360_csv.py
+```
+
+這會產生：
+
+```text
+data/360.csv
+```
+這樣三個平台的模擬資料就被合併完成了，如果你想更改合併邏輯，你可以在`fake-data-script/sql/ads_unified.sql`裡修改SQL
+
+### 5. 開啟 Claude Code、Codex 或 Gemini CLI
+
+完成假資料與 `360.csv` 後，再開啟 Claude Code、Codex 或 Gemini CLI，請 AI agent 執行檢查。
+
+如果你是第一次使用 Claude Code、Codex 或 Gemini CLI，請先確認自己是否已經有對應服務的帳號或訂閱方案，並依照官方文件完成 CLI 安裝與登入。這個 repo 不包含這些 CLI 工具本身。
+
+例如可以輸入：
+
+```text
+mq
+```
+
+或用自然語言：
+
+```text
+請檢查這批行銷資料有沒有品質問題，並輸出報告。
+```
+
 ## AI Agent 可以做什麼
 
 這個 agent 的工作不是取代行銷判斷，而是把行銷人員的經驗規則變成可重複執行的檢查流程。
@@ -25,18 +136,21 @@ Agent 預設不會修改原始資料，也不會修改 fake data 產生腳本。
 ```text
 mq
 ```
+(marketing quality)
 
 執行資料品質檢查，使用 `data-quality` skill。
 
 ```text
 ma
 ```
+(marketing anomaly detection)
 
 執行異常偵測，使用 `anomaly-detection` skill。
 
 ```text
 mn
 ```
+(marketing naming convention)
 
 執行命名規則檢查，使用 `naming-convention` skill。
 
@@ -84,6 +198,9 @@ reports/naming-convention-2026-05-25.md
 - 可能原因
 - 建議對策
 - 需要人工確認的事項
+
+如果你希望可以更改報告的規格，你可以去`rules.md`的「## 報告要求」去修改
+例如`.claude/skills/data-quality/references/rules.md`
 
 ## 三個 Skill 的功用
 
@@ -397,10 +514,10 @@ fake-data-script/sql/ads_unified.sql
 
 ## 假資料如何產生
 
-產生三份 raw data：
+產生三份 raw data。第一次使用建議不要指定日期，直接使用預設的 180 天資料：
 
 ```bash
-.venv/bin/python fake-data-script/generate_lululemon_fake_data.py --end-date 2026-05-25
+python fake-data-script/generate_lululemon_fake_data.py
 ```
 
 輸出：
@@ -414,7 +531,7 @@ data/ga4_raw.csv
 合併成 360.csv：
 
 ```bash
-.venv/bin/python fake-data-script/build_360_csv.py
+python fake-data-script/build_360_csv.py
 ```
 
 輸出：
@@ -469,47 +586,3 @@ fake-data-script/sql/ads_unified.sql
 - 用 `UNION ALL` 合併廣告資料
 - 聚合 GA4 UTM 資料
 - 將 GA4 指標接到廣告資料上
-
-## 安裝方式
-
-第一次使用時，請在專案根目錄執行：
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-目前唯一需要的 Python 套件是：
-
-```text
-duckdb
-```
-
-如果只是閱讀規則、修改 `rules.md` 或查看報告，不需要安裝 Python。
-
-## 常見使用流程
-
-1. 產生或更新假資料。
-
-```bash
-.venv/bin/python fake-data-script/generate_lululemon_fake_data.py --end-date 2026-05-25
-```
-
-2. 合併成 360.csv。
-
-```bash
-.venv/bin/python fake-data-script/build_360_csv.py
-```
-
-3. 請 AI agent 檢查資料品質。
-
-```text
-mq
-```
-
-4. 查看 `reports/` 裡的報告。
-
-5. 如果報告中的判斷不符合行銷經驗，調整對應的 `references/rules.md`。
-
-6. 再次請 agent 執行檢查。
