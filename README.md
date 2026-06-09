@@ -10,7 +10,7 @@
 - [AI Agent 可以做什麼](#ai-agent-可以做什麼)
 - [可用指令](#可用指令)
 - [報告會輸出到哪裡](#報告會輸出到哪裡)
-- [三個 Skill 的功用](#三個-skill-的功用)
+- [四個 Skill 的功用](#四個-skill-的功用)
 - [行銷人員該怎麼維護規則](#行銷人員該怎麼維護規則)
 - [如何擴展 Agent](#如何擴展-agent)
 - [專案結構](#專案結構)
@@ -124,6 +124,7 @@ mq
 - 檢查資料品質：必要欄位是否缺失、數值是否合理、clicks 是否超過 impressions、GA4 是否有對應到廣告資料。
 - 偵測異常：檢查 `data/360.csv` 中 spend、ROAS、CTR、users、revenue 是否出現不合理波動。
 - 檢查命名規則：檢查 campaign、ad group、ad set、ad name 是否符合命名格式。
+- 產生 dashboard：根據 `data/360.csv` 建立行銷成效 dashboard，也可以套用 `template/` 裡的 Google Sheet 模板。
 - 產出報告：把檢查結果寫成 markdown 報告，放在 `reports/`。
 - 轉成更好讀的格式：例如把 markdown 報告整理成 HTML，方便給團隊閱讀。
 
@@ -154,6 +155,13 @@ mn
 
 執行命名規則檢查，使用 `naming-convention` skill。
 
+```text
+md
+```
+(marketing dashboard)
+
+產生行銷 dashboard，使用 `dashboard-generator` skill。沒有指定模板時，agent 會自行決定 dashboard 版型；如果 `template/` 裡有模板，會優先保留模板設計並填入資料。
+
 也可以用自然語言說明，例如：
 
 ```text
@@ -166,6 +174,10 @@ mn
 
 ```text
 請檢查 campaign 和 ad group 命名是否符合規則。
+```
+
+```text
+請根據 360.csv 產生一份行銷 dashboard。
 ```
 
 注意：某些 CLI 不支援自訂 slash command，所以請輸入 `mq`，不要輸入 `/mq`。
@@ -211,7 +223,7 @@ reports/naming-convention-2026-05-25.md
 
 `reports/` 裡可能也會看到 HTML 檔案。這是另外請 AI 生成的版本，用來測試 HTML 報告的可讀性；不過 HTML 產生時間通常比較久，所以目前仍以 markdown 報告為主。
 
-## 三個 Skill 的功用
+## 四個 Skill 的功用
 
 ### data-quality
 
@@ -323,6 +335,43 @@ jp_google_pmax_prospecting_women_yoga
 jp_meta_img_retargeting_bags
 ```
 
+### dashboard-generator
+
+位置：
+
+```text
+.claude/skills/dashboard-generator/
+```
+
+用途：
+
+- 根據 `data/360.csv` 產生行銷 dashboard。
+- 沒有指定模板時，由 agent 自行決定 dashboard 版型。
+- 有指定模板時，優先使用 `template/` 裡的 Google Sheet 或 Excel 模板。
+- 適合用來回答「請幫我做 dashboard」、「請把 360.csv 做成報表」、「請套用這個模板產生 dashboard」。
+
+會讀取的規則：
+
+```text
+.claude/skills/dashboard-generator/references/rules.md
+.claude/skills/dashboard-generator/references/template-markers.md
+.claude/skills/dashboard-generator/references/report-types.md
+```
+
+會使用的資料：
+
+```text
+data/360.csv
+template/
+```
+
+模板維護方式：
+
+- 非技術使用者可以直接維護 Google Sheet 或 Excel 模板。
+- 在模板中放入 `{{dashboard_title}}`、`{{roas}}`、`{{daily_trend_chart}}` 這類 placeholder。
+- Agent 會優先替換 placeholder，並保留模板原本的顏色、文字與版面。
+- 如果模板裡有 `Config` sheet，可以用一般表格設定資料來源、日期欄位、預設天數與主要分析維度。
+
 ## 行銷人員該怎麼維護規則
 
 行銷人員主要維護的是各 skill 底下的 `references/rules.md`。
@@ -331,6 +380,7 @@ jp_meta_img_retargeting_bags
 .claude/skills/data-quality/references/rules.md
 .claude/skills/anomaly-detection/references/rules.md
 .claude/skills/naming-convention/references/rules.md
+.claude/skills/dashboard-generator/references/rules.md
 ```
 
 這些檔案可以用純文字描述業務規則，不需要寫程式。
@@ -387,7 +437,8 @@ digital-marketing-agent/
 │   ├── commands/
 │   │   ├── mq.md
 │   │   ├── ma.md
-│   │   └── mn.md
+│   │   ├── mn.md
+│   │   └── md.md
 │   └── skills/
 │       ├── data-quality/
 │       │   ├── SKILL.md
@@ -397,15 +448,24 @@ digital-marketing-agent/
 │       │   ├── SKILL.md
 │       │   └── references/
 │       │       └── rules.md
-│       └── naming-convention/
+│       ├── naming-convention/
+│       │   ├── SKILL.md
+│       │   └── references/
+│       │       └── rules.md
+│       └── dashboard-generator/
 │           ├── SKILL.md
 │           └── references/
-│               └── rules.md
+│               ├── rules.md
+│               ├── template-markers.md
+│               └── report-types.md
 ├── data/
 │   ├── google_ads_raw.csv
 │   ├── meta_ads_raw.csv
 │   ├── ga4_raw.csv
 │   └── 360.csv
+├── template/
+│   ├── README.md
+│   └── marketing-dashboard-template.md
 ├── fake-data-script/
 │   ├── README.md
 │   ├── generate_lululemon_fake_data.py
