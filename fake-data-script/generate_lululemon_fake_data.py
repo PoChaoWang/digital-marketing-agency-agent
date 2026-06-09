@@ -311,12 +311,26 @@ def paid_ga4_from_ads(
     medium: str,
 ) -> list[dict[str, object]]:
     ga4_rows: list[dict[str, object]] = []
+    
+    # Mapping for Google Ads medium
+    google_medium_map = {
+        "gdn": "display",
+        "pmax": "pmax",
+        "sho": "shopping"
+    }
+
     for row in rows:
         campaign = str(row["campaign_name"])
         utm_id = str(row[id_field])
         content = str(row["ad_name"])
         if not campaign or not utm_id or not content:
             continue
+
+        # Determine medium
+        current_medium = medium
+        if source == "google":
+            ctype = str(row.get("campaign_type", ""))
+            current_medium = google_medium_map.get(ctype, medium)
 
         clicks = int(row["clicks"])
         if clicks <= 0:
@@ -334,16 +348,16 @@ def paid_ga4_from_ads(
 
         product = next((p for p in PRODUCT_LINES if p.slug == row["product_line"]), PRODUCT_LINES[0])
         landing_page = product.landing_page
-        utm_code = build_utm_url(source, medium, campaign, utm_id, content, landing_page)
+        utm_code = build_utm_url(source, current_medium, campaign, utm_id, content, landing_page)
 
         ga4_rows.append(
             {
                 "date": row["date"],
                 "source": source,
-                "medium": medium,
+                "medium": current_medium,
                 "campaign": campaign,
                 "utm_source": source,
-                "utm_medium": medium,
+                "utm_medium": current_medium,
                 "utm_campaign": campaign,
                 "utm_id": utm_id,
                 "utm_content": content,
