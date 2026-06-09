@@ -3,3 +3,5 @@ __pycache__/
 *.py[cod]
 .DS_Store
 data/*.csv
+prompt/
+fake-data-script/Keyword Stats 2026-06-09 at 11_22_17.csv
