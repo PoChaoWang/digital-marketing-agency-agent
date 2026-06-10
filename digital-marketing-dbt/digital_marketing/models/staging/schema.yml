@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: raw_digital_marketing
+    database: my-project-for-bigquery-445809
+    schema: raw_digital_marketing
+    tables:
+      - name: raw_google_ads
+      - name: raw_meta_ads
+      - name: raw_google_ppc
+      - name: raw_yahoo_ppc
+      - name: raw_yahoo_display
+      - name: raw_ga4
+
+models:
+  - name: stg_google_ads
+  - name: stg_meta_ads
+  - name: stg_google_ppc
+  - name: stg_yahoo_ppc
+  - name: stg_yahoo_display
+  - name: stg_ga4
