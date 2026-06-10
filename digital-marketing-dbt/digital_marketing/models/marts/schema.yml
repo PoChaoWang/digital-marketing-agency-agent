@@ -1,0 +1,6 @@
+version: 2
+
+models:
+  - name: mart_360table
+    description: This model aggregates data from various intermediate models to create a comprehensive 360-degree view of digital marketing performance, including metrics from Google Ads, Meta Ads, Google PPC, Yahoo PPC, Yahoo Display, and GA4. It serves as the final output for analysis and reporting in the marts schema.
+  
