@@ -23,6 +23,8 @@ case
     when lower({{ campaign_name }}) like '%prospecting%' then 'Prospecting'
     when lower({{ campaign_name }}) like '%retargeting%' then 'Retargeting'
     when lower({{ campaign_name }}) like '%lookalike%' then 'Lookalike'
+    when lower({{ campaign_name }}) like '%_brand_%' then 'Brand'
+    when lower({{ campaign_name }}) like '%_non-brand_%' then 'Non-Brand'
 end
 {% endmacro %}
 
