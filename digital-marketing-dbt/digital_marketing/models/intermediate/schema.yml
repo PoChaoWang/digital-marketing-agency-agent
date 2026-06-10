@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: int_google_ads
+    description: Intermediate model for Google Ads, referencing stg_google_ads.
+  - name: int_meta_ads
+    description: Intermediate model for Meta Ads, referencing stg_meta_ads.
+  - name: int_google_ppc
+    description: Intermediate model for Google PPC, referencing stg_google_ppc.
+  - name: int_yahoo_ppc
+    description: Intermediate model for Yahoo PPC, referencing stg_yahoo_ppc.
+  - name: int_yahoo_display
+    description: Intermediate model for Yahoo Display, referencing stg_yahoo_display.
+  - name: int_ga4
+    description: Intermediate model for GA4, referencing stg_ga4.
