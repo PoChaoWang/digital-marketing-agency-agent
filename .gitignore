@@ -5,3 +5,6 @@ __pycache__/
 data/*.csv
 prompt/
 fake-data-script/Keyword Stats 2026-06-09 at 11_22_17.csv
+.env
+digital-marketing-dbt/logs/dbt.log
+digital-marketing-dbt/logs/query_log.sql
