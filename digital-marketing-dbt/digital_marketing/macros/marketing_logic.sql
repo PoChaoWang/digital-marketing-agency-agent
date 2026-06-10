@@ -9,7 +9,7 @@ end
 {% macro get_channel(campaign_name) %}
 case
     when lower({{ campaign_name }}) like '%gdn%' then 'GDN'
-    when lower({{ campaign_name }}) like '%pmx%' then 'Performance'
+    when lower({{ campaign_name }}) like '%pmax%' then 'PerformanceMax'
     when lower({{ campaign_name }}) like '%sho%' then 'Shopping'
     when lower({{ campaign_name }}) like '%ppc%' then 'PPC'
     when lower({{ campaign_name }}) like '%yahoo_display%' then 'YDA'
