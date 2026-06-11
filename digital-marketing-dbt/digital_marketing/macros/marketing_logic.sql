@@ -11,7 +11,8 @@ case
     when lower({{ campaign_name }}) like '%gdn%' then 'GDN'
     when lower({{ campaign_name }}) like '%pmax%' then 'PerformanceMax'
     when lower({{ campaign_name }}) like '%sho%' then 'Shopping'
-    when lower({{ campaign_name }}) like '%ppc%' then 'PPC'
+    when lower({{ campaign_name }}) like '%google%' and lower({{ campaign_name }}) like '%ppc%' then 'Google PPC'
+    when lower({{ campaign_name }}) like '%yahoo%' and lower({{ campaign_name }}) like '%ppc%' then 'Yahoo PPC'
     when lower({{ campaign_name }}) like '%yahoo_display%' then 'YDA'
     when lower({{ campaign_name }}) like '%meta%' then 'Meta'
 end
